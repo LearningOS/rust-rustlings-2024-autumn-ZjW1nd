@@ -20,7 +20,6 @@
 //
 // No hints this time!
 
-// I AM NOT DONE
 
 pub enum Command {
     Uppercase,
@@ -32,11 +31,32 @@ mod my_module {
     use super::Command;
 
     // TODO: Complete the function signature!
-    pub fn transformer(input: ???) -> ??? {
+    pub fn transformer(input: Vec<(String, Command)>) -> Vec<String>{
+        // 返回Vec<str>过不了编译，说str是没有Sized trait的不是编译时能确定大小的
+        // output的所有权在transformer里，怎么返回？
+        // 草泥马被测试集骗了，必须返回String把所有权传出去然后eq也能比较，不是比较&str
         // TODO: Complete the output declaration!
-        let mut output: ??? = vec![];
+        let mut output: Vec<String> = vec![];
         for (string, command) in input.iter() {
             // TODO: Complete the function body. You can do it!
+            match command{
+                Command::Uppercase => {
+                    output.push(string.to_uppercase());
+                }
+                Command::Trim => {
+                    output.push(string.trim().to_string());
+                }
+                Command::Append(n) => {
+                //string不可变，这里无论如何都要开一个新的String
+                    let mut new_string = string.clone();
+                    let mut cnt = *n;
+                    while cnt>0 {
+                        new_string.push_str("bar");
+                        cnt -= 1;
+                    }
+                    output.push(new_string);
+                }
+            }
         }
         output
     }
@@ -45,7 +65,7 @@ mod my_module {
 #[cfg(test)]
 mod tests {
     // TODO: What do we need to import to have `transformer` in scope?
-    use ???;
+    use crate::my_module::transformer;
     use super::Command;
 
     #[test]
