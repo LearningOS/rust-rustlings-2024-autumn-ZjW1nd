@@ -3,10 +3,32 @@
 	This problem requires you to implement a sorting algorithm
 	you can use bubble sorting, insertion sorting, heap sorting, etc.
 */
-// I AM NOT DONE
 
-fn sort<T>(array: &mut [T]){
-	//TODO
+fn sort<T : PartialOrd>(array: &mut [T]){
+	// 快排非递归
+    if array.len() <= 1 {return;}
+    let mut stack = vec![(0, array.len() - 1)];// 用一个栈模拟递归，算是递归通用解法
+    while let Some((left, right)) = stack.pop() {
+        if left >= right { continue; }
+        let pivot_index = partition(array, left, right);
+        if pivot_index > 0 {
+            stack.push((left, pivot_index - 1));
+        }
+        stack.push((pivot_index + 1, right));
+    }
+
+fn partition<T: PartialOrd>(array: &mut [T], left: usize, right: usize) -> usize {
+    let pivot = right;
+    let mut i = left;
+    for j in left..right {
+        if array[j] < array[pivot] {
+            array.swap(i, j);
+            i += 1;
+        }
+    }
+    array.swap(i, pivot);
+    i
+}
 }
 #[cfg(test)]
 mod tests {

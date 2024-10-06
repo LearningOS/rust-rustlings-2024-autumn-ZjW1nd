@@ -2,7 +2,6 @@
 	queue
 	This question requires you to use queues to implement the functionality of the stac
 */
-// I AM NOT DONE
 
 #[derive(Debug)]
 pub struct Queue<T> {
@@ -52,30 +51,63 @@ impl<T> Default for Queue<T> {
     }
 }
 
-pub struct myStack<T>
+pub struct myStack< T>
 {
-	//TODO
+	//TODO，用两个队列实现一个栈，为什么两个队列？？？还有为什么不用vec自己的性质...
+    cur: u8,
 	q1:Queue<T>,
 	q2:Queue<T>
 }
 impl<T> myStack<T> {
     pub fn new() -> Self {
         Self {
-			//TODO
+            cur: 1,
 			q1:Queue::<T>::new(),
 			q2:Queue::<T>::new()
         }
     }
     pub fn push(&mut self, elem: T) {
         //TODO
+        match self.cur {
+            1 => {
+                self.q1.enqueue(elem);
+            }
+            2 => {
+                self.q2.enqueue(elem);
+            }
+            _ => {}
+        }
     }
     pub fn pop(&mut self) -> Result<T, &str> {
         //TODO
-		Err("Stack is empty")
+        // 懂了，就是tmd每次pop的时候都把所有元素弹出到剩一个
+        // 元素在两个队列中循环
+        match self.cur {
+            1 => {
+                if self.q1.is_empty() {return Err("Stack is empty");}
+                while self.q1.size() > 1 {
+                    let elem = self.q1.dequeue().unwrap();
+                    self.q2.enqueue(elem);
+                    self.cur = 2;
+                }
+                Ok(self.q1.dequeue().unwrap())
+            }
+            2 => {
+                if self.q2.is_empty() {return Err("Stack is empty");}
+                while self.q2.size() > 1 {
+                    let elem = self.q2.dequeue().unwrap();
+                    self.q1.enqueue(elem);
+                    self.cur = 1;
+                }
+                Ok(self.q2.dequeue().unwrap())
+            }
+            _ => {Err("Wrong cur")}
+        }
+		
     }
     pub fn is_empty(&self) -> bool {
 		//TODO
-        true
+        self.q1.is_empty()
     }
 }
 

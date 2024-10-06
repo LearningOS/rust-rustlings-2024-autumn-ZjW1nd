@@ -2,19 +2,18 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
 use std::vec::*;
 
 #[derive(Debug)]
-struct Node<T> {
+struct Node<T : PartialOrd + PartialEq + Clone> {
     val: T,
     next: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Node<T> {
+impl<T : PartialOrd + PartialEq + Clone> Node<T> {
     fn new(t: T) -> Node<T> {
         Node {
             val: t,
@@ -23,19 +22,19 @@ impl<T> Node<T> {
     }
 }
 #[derive(Debug)]
-struct LinkedList<T> {
+struct LinkedList<T : PartialOrd + PartialEq + Clone> {
     length: u32,
     start: Option<NonNull<Node<T>>>,
     end: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Default for LinkedList<T> {
+impl<T : PartialOrd + PartialEq + Clone> Default for LinkedList<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> LinkedList<T> {
+impl<T : PartialOrd + PartialEq + Clone> LinkedList<T> {
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -43,8 +42,8 @@ impl<T> LinkedList<T> {
             end: None,
         }
     }
-
-    pub fn add(&mut self, obj: T) {
+    // 手搓vec???
+    pub fn add(&mut self, obj: T) {// 这里拿走了所有权，要想用它创建新list就要实现clone
         let mut node = Box::new(Node::new(obj));
         node.next = None;
         let node_ptr = Some(unsafe { NonNull::new_unchecked(Box::into_raw(node)) });
@@ -71,16 +70,52 @@ impl<T> LinkedList<T> {
     }
 	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
 	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+        let mut list_c = LinkedList::<T>::new();
+        // 按照C的逻辑，两个指针从两个list的头开始扫描即可
+        // 但是rust
+        let mut ptr_a = list_a.start;
+        let mut ptr_b = list_b.start;
+        match (ptr_a, ptr_b){
+            (None,None) => return list_c,
+            (None,Some(_)) => {return list_b;},
+            (Some(_),None) => {return list_a;},
+            _ => {}// 这才是我们要处理的情况
         }
+        while ptr_a.is_some() && ptr_b.is_some() {
+            // 每次循环都会重新赋值会不会有损失？没有走的指针被重新赋值了
+            // T什么都没实现，没有Copy,没法用临时变量拿val的值，如果用zi ding yi
+            let pnode_a = ptr_a.unwrap().as_ptr();
+            let pnode_b = ptr_b.unwrap().as_ptr();
+            unsafe{
+                if (*pnode_a).val <=  (*pnode_b).val {
+                    list_c.add((*pnode_a).val.clone());
+                    ptr_a = (*ptr_a.unwrap().as_ptr()).next;
+                }else if  (*pnode_a).val > (*pnode_b).val {
+                    list_c.add((*pnode_b).val.clone());
+                    ptr_b = (*ptr_b.unwrap().as_ptr()).next;
+                }
+            }
+        }
+        // 有一个list已经遍历完了，剩下的直接加到list_c后面
+        while ptr_a.is_some() {// while 会帮我们判断，不用管
+            let pnode_a = ptr_a.unwrap().as_ptr();
+            unsafe{
+                list_c.add((*pnode_a).val.clone());
+                ptr_a = (*ptr_a.unwrap().as_ptr()).next;
+            }
+        }
+        while ptr_b.is_some() {
+            let pnode_b = ptr_b.unwrap().as_ptr();
+            unsafe{
+                list_c.add((*pnode_b).val.clone());
+                ptr_b = (*ptr_b.unwrap().as_ptr()).next;
+            }
+        }
+        list_c
 	}
 }
 
-impl<T> Display for LinkedList<T>
+impl<T : PartialOrd + PartialEq + Clone> Display for LinkedList<T>
 where
     T: Display,
 {
@@ -92,7 +127,7 @@ where
     }
 }
 
-impl<T> Display for Node<T>
+impl<T : PartialOrd + PartialEq + Clone> Display for Node<T>
 where
     T: Display,
 {
